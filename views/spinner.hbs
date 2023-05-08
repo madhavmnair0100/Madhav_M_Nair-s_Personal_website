@@ -8,12 +8,18 @@
         <span class="visually-hidden">Loading...</span>
     </div>
 </div>
- <h1 style="margin-left: 600px; margin-top: 70px;" class="loading">Loading...</h1>
+<h1 style="margin-left: 600px; margin-top: 70px;" class="loading">Loading...</h1>
 <script>
+
+    const randomMilliseconds = Math.random() < 0.2 ? Math.floor(Math.random() * 5000) : Math.floor(Math.random() * 10001) + 5000;
+
+
     setTimeout(function () {
         // after 5 seconds, change the location to the HTML file you want to display
         window.location.href = "home";
-    }, 10000);
+    }, randomMilliseconds )
+
+    //console.log(Math.floor(Math.random() * 11))
 
     // Get a reference to the loading element
     const loadingEl = document.querySelector('.loading');
