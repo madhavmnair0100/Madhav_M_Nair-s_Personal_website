@@ -1,52 +1,98 @@
-<div style="margin-top: 115px;" class="d-flex justify-content-center">
-    <img style="width: 290px;"
-        src="https://png2.cleanpng.com/sh/4aeba6b4d6ba8be8ec686c2e22a14e50/L0KzQYm3U8E2N5lofZH0aYP2gLBuTfdwd5hxkZ9ueXX2PbTokwRwd58ye95ycD3kgsW0gBFzfJD0hp95aXP3hcPsk71wbl5qkdd8LUXkcbK6gfRjbmQASag9Lki0SIq8VsEzOWY3SaM5NUa1R4qCV8cveJ9s/kisspng-googly-eyes-cartoon-clip-art-cartoon-pictures-of-eyes-5aaa3adbf39164.8189561215211056279977.png">
-    <div class="spinner-border" style=" position: absolute; --bs-spinner-width: 20rem; --bs-spinner-height: 20rem;"
-        role="status">
-        <img style="width: 100px;"
-            src="https://banner2.cleanpng.com/20180328/ffw/kisspng-emoji-smiley-happiness-iphone-emoticon-emoji-5abb33c395c6d8.7618577315222179236135.jpg">
-        <span class="visually-hidden">Loading...</span>
-    </div>
-</div>
-<h1 style="margin-left: 600px; margin-top: 70px;" class="loading">Loading...</h1>
-<script>
+var createError = require('http-errors');
+var express = require('express');
+var path = require('path');
+var cookieParser = require('cookie-parser');
+var logger = require('morgan');
 
-    const randomMilliseconds = Math.random() < 0.2 ? Math.floor(Math.random() * 5000) : Math.floor(Math.random() * 10001) + 5000;
+var app = express();
 
+// view engine setup
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'hbs');
 
-    setTimeout(function () {
-        // after 5 seconds, change the location to the HTML file you want to display
-        window.location.href = "home";
-    }, randomMilliseconds )
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
 
-    //console.log(Math.floor(Math.random() * 11))
+// Define the unique identifier for the specific URL
+function generateUniqueId(length) {
+  const alphanumeric = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let uniqueId = '';
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * alphanumeric.length);
+    uniqueId += alphanumeric.charAt(randomIndex);
+  }
+  return uniqueId;
+}
 
-    // Get a reference to the loading element
-    const loadingEl = document.querySelector('.loading');
+// Usage
+const id = generateUniqueId(10);
+console.log(id);
 
-    // Set an interval to update the loading text every 500 milliseconds
-    let counter = 0;
-    const interval = setInterval(() => {
-        // Update the text based on the counter
-        switch (counter % 3) {
-            case 0:
-                loadingEl.textContent = 'loading.';
-                break;
-            case 1:
-                loadingEl.textContent = 'loading..';
-                break;
-            case 2:
-                loadingEl.textContent = 'loading...';
-                break;
-        }
-        // Increment the counter
-        counter++;
-    }, 300);
+const uniqueId = id;
 
-    // When the loading is complete, clear the interval and hide the loading element
-    function loadingComplete() {
-        clearInterval(interval);
-        loadingEl.style.display = 'none';
+// Define the protected page
+app.get('/home', function (req, res, next) {
+  // Check if the cookie exists and contains the correct unique identifier
+  if (req.cookies[uniqueId] === 'visited') {
+    // Render the protected page
+    res.render('index', { title: 'Signup' });
+  } else {
+    // Redirect the visitor back to the specific URL
+    res.redirect('/');
+  }
+});
+
+// Define the specific URL
+app.get('/', function (req, res, next) {
+  // Set the cookie to store the unique identifier
+  res.cookie(uniqueId, 'visited', { maxAge: 900000, httpOnly: true });
+
+  // Render the specific URL
+  res.render('spinner', { title: 'Loading' });
+});
+
+// catch 404 and forward to error handler
+app.use(function (req, res, next) {
+  next(createError(404));
+});
+
+// error handler
+app.use(function (err, req, res, next) {
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+  // render the error page
+  res.status(err.status || 500);
+  res.render('error');
+});
+
+// Start the server and listen on your local IP address and port
+const port = 3000; // Update the port number if needed
+const ip = '192.168.18.117';
+// Update with your local IP address
+app.listen(port, ip, function () {
+  console.log(`Server running on ${ip}:${port}`);
+});
+const os = require('os');
+
+const interfaces = os.networkInterfaces();
+let ipAddress;
+
+Object.keys(interfaces).forEach((interfaceName) => {
+  const interface = interfaces[interfaceName];
+
+  interface.forEach((info) => {
+    if (info.family === 'IPv4' && !info.internal) {
+      ipAddress = info.address;
     }
+  });
+});
 
-</script>
+console.log('Device IP Address:', ipAddress);
+
+
+module.exports = app;
